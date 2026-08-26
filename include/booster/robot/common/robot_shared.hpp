@@ -3,76 +3,87 @@
 namespace booster {
 namespace robot {
 
-/*Robot mode */
+/** @brief High-level robot operating mode; supported transitions are model-specific. */
 enum class RobotMode {
-    kUnknown = -1, // For error handling
-    kDamping = 0,  // All motor enter damping mode, robot will fall down if it is not supported
-    kPrepare = 1,  // Prepare mode, the robot keeps standing on both feet and can switch to walking mode
-    kWalking = 2,  // Walking mode, in walking mode, the robot can move, rotate, kick the ball, etc.
-    kCustom = 3,   // Custom mode, in custom mode, the robot can do some custom actions
-    kSoccer = 4,   // Soccer mode, in soccer mode, the robot can perform some soccer actions
+    kUnknown = -1, ///< Unknown mode, used for error handling.
+    kDamping = 0,  ///< Put all motors into damping mode; the robot may fall.
+    kPrepare = 1,  ///< Maintain a two-foot standing posture before walking.
+    kWalking = 2,  ///< Enable locomotion and walking-mode actions.
+    kCustom = 3,   ///< Enable custom body controls and actions.
+    kSoccer = 4,   ///< Enable soccer locomotion and actions; supported model: K1 | T1.
 };
 
+/** @brief Body controller selected within a robot mode. */
 enum class BodyControl {
-    kUnknown = 0,
-    kDamping = 1,               // Only active in damping mode, damping mode has no other body control
-    kPrepare = 2,               // Only active in prepare mode, prepare mode has no other body control
-    kHumanlikeGait = 3,         // Humanlike gait body control, in humanlike gait, the robot can walk like a human
-    kProneBody = 4,             // Prone body control, in prone body control, the robot can lie down、push-up
-    kSoccerGait = 5,            // Soccer gait body control, in soccer gait, the robot can move faster and do some soccer player like actions
-    kCustom = 6,                // Only active in custom mode, custom mode has no other body control
-    kGetUp = 7,                 // Get up body control, in get up body control, the robot can get up from lying down
-    kWholeBodyDance = 8,        // Whole body dance body control, in whole body dance, the robot can do some whole body dance actions
-    kShoot = 9,                 // Shoot body control, in shoot body control, the robot can scored with a powerful shot
-    kInsideFoot = 10,           // History caused name, actually is visual kick body control V2
-    kGoalie = 11,               // Goalie body control, in goalie body control, the robot can perform goalie actions
-    kWBCGait = 12,              // Whole body control gait body control, in WBC gait, the robot walking by whole body control
-    kLionDancePreparePose = 13, // Lion dance prepare pose, in this body control, the robot will do lion dance prepare pose
-    kVisualKickV1 = 14,         // Visual kick body control V1, in visual kick body control, the robot can do visual kick actions
+    kUnknown = 0,               ///< Unknown or unavailable body controller.
+    kDamping = 1,               ///< Damping-mode controller.
+    kPrepare = 2,               ///< Prepare-mode standing controller.
+    kHumanlikeGait = 3,         ///< Human-like walking controller.
+    kProneBody = 4,             ///< Prone-posture controller for lying down and push-ups.
+    kSoccerGait = 5,            ///< Soccer locomotion controller.
+    kCustom = 6,                ///< Custom-mode controller.
+    kGetUp = 7,                 ///< Controller for recovering from a prone posture.
+    kWholeBodyDance = 8,        ///< Whole-body dance controller.
+    kShoot = 9,                 ///< Powerful soccer-shot controller.
+    kInsideFoot = 10,           ///< Legacy name for the visual-kick V2 controller.
+    kGoalie = 11,               ///< Soccer goalkeeper controller.
+    kWBCGait = 12,              ///< Whole-body-control gait controller.
+    kLionDancePreparePose = 13, ///< Lion-dance preparation-pose controller.
+    kVisualKickV1 = 14,         ///< Visual-kick V1 controller.
 };
 
+/** @brief Built-in gesture, dance and trajectory actions. */
 enum class Action {
-    kUnknown = 0,
-    kHandShake = 1,
-    kHandWave = 2,
-    kHandControl = 3,
-    kDanceNewYear = 4,
-    kDanceNezha = 5,
-    kDanceTowardsFuture = 6,
-    kGestureDabbing = 7,
-    kGestureUltraman = 8,
-    kGestureRespect = 9,
-    kGestureCheer = 10,
-    kGestureLuckyCat = 11,
-    kGestureBoxing = 12,
-    kZeroTorqueDrag = 13,
-    kRecordTraj = 14,
-    kRunRecordedTraj = 15,
+    kUnknown = 0,            ///< Unknown or unavailable action.
+    kHandShake = 1,          ///< Handshake action.
+    kHandWave = 2,           ///< Hand-waving action.
+    kHandControl = 3,        ///< Hand end-effector control action.
+    kDanceNewYear = 4,       ///< New Year dance.
+    kDanceNezha = 5,         ///< Nezha dance.
+    kDanceTowardsFuture = 6, ///< Towards the Future dance.
+    kGestureDabbing = 7,     ///< Dabbing gesture.
+    kGestureUltraman = 8,    ///< Ultraman gesture.
+    kGestureRespect = 9,     ///< Respect gesture.
+    kGestureCheer = 10,      ///< Cheering gesture.
+    kGestureLuckyCat = 11,   ///< Lucky-cat gesture.
+    kGestureBoxing = 12,     ///< Boxing gesture.
+    kZeroTorqueDrag = 13,    ///< Zero-torque arm-drag action.
+    kRecordTraj = 14,        ///< Trajectory-recording action.
+    kRunRecordedTraj = 15,   ///< Recorded-trajectory replay action.
 };
 
+/** @brief Reference frame used by pose or motion APIs. */
 enum class Frame {
-    kUnknown = -1, // For error handling
-    kBody = 0,
-    kHead = 1,
-    kLeftHand = 2,
-    kRightHand = 3,
-    kLeftFoot = 4,
-    kRightFoot = 5,
+    kUnknown = -1, ///< Unknown frame, used for error handling.
+    kBody = 0,     ///< Robot body frame.
+    kHead = 1,     ///< Robot head frame.
+    kLeftHand = 2, ///< Left-hand frame.
+    kRightHand = 3, ///< Right-hand frame.
+    kLeftFoot = 4, ///< Left-foot frame.
+    kRightFoot = 5, ///< Right-foot frame.
 };
 
+/** @brief Sub-state of prone-body control. */
 enum class ProneBodyControlPosture {
-    kUnknown = 0,
-    kInactive = 1,
-    kPushUp = 2,
-    kLieDown = 3,
-    kSoccerLocomotion = 4,
-    kSoccerKicking = 5,
+    kUnknown = 0,          ///< Unknown prone-controller posture.
+    kInactive = 1,         ///< Prone-body control is inactive.
+    kPushUp = 2,           ///< Push-up posture or activity.
+    kLieDown = 3,          ///< Lying-down posture.
+    kSoccerLocomotion = 4, ///< Soccer locomotion posture.
+    kSoccerKicking = 5,    ///< Soccer kicking posture.
 };
 
+/** @brief RoboCup behavior execution state. */
 enum class RobocupBehaviorStatus {
-    RUNNING = 0,
-    SHOOTING = 1,
-    PASSING = 2,
+    RUNNING = 0,  ///< Behavior execution is in progress.
+    SHOOTING = 1, ///< The robot is executing a shot.
+    PASSING = 2,  ///< The robot is executing a pass.
+};
+
+/** @brief Status of a custom or built-in trained trajectory. */
+enum class TrainedTrajStatus {
+    kIdle = 0,    ///< No trained trajectory is executing.
+    kRunning = 1, ///< A trained trajectory is executing.
 };
 
 }

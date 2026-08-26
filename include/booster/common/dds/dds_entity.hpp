@@ -190,8 +190,8 @@ private:
 class DdsDedicatedCallbackExecutor {
 public:
     explicit DdsDedicatedCallbackExecutor(const DdsReaderExecutorOptions &options) :
-        options_(options),
-        executor_([this]() { Run(); }) {
+        options_(options) {
+        executor_ = std::thread([this]() { Run(); });
     }
 
     ~DdsDedicatedCallbackExecutor() {
@@ -291,8 +291,8 @@ private:
     std::mutex mutex_;
     std::condition_variable cv_;
     std::deque<std::function<void()>> tasks_;
-    std::thread executor_;
     bool stop_requested_{false};
+    std::thread executor_;
 };
 
 template <typename MSG>

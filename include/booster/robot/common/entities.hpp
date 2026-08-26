@@ -6,8 +6,8 @@ namespace booster {
 namespace robot {
 
 /**
- *  This class definition represents a 3D position in space with x, y, and z coordinates.
- *  x, y, and z are in meters.
+ * @brief 3D position in metres.
+ * @note Supported model: K1 | T1 | T2
  */
 class Position {
 public:
@@ -16,12 +16,14 @@ public:
         x_(x), y_(y), z_(z) {
     }
 
+    /** @brief Loads x, y and z from JSON. */
     void FromJson(nlohmann::json &json) {
         x_ = json["x"];
         y_ = json["y"];
         z_ = json["z"];
     }
 
+    /** @brief Serializes this position as `{x,y,z}`. */
     nlohmann::json ToJson() const {
         nlohmann::json json;
         json["x"] = x_;
@@ -36,10 +38,7 @@ public:
     float z_ = 0.; // unit : m
 };
 
-/**
- *  This class definition represents a 3D orientation in space with roll, pitch, and yaw coordinates.
- *  roll, pitch, and yaw are in rad.
- */
+/** @brief Roll/pitch/yaw orientation in radians. */
 class Orientation {
 public:
     Orientation() = default;
@@ -67,10 +66,7 @@ public:
     float yaw_ = 0.;   // unit : rad
 };
 
-/**
- *  This class definition represents a 3D pose in space with position and orientation.
- *  position and orientation are in meters and rad.
- */
+/** @brief Pose combining a Position and Orientation. */
 class Posture {
 public:
     Posture() = default;
@@ -95,10 +91,7 @@ public:
     Orientation orientation_;
 };
 
-/**
- *  This class definition represents a 4D quaternion.
- *  quaternion is in x, y, z, w format.
- */
+/** @brief Quaternion in x, y, z, w order. */
 class Quaternion {
 public:
     Quaternion() = default;
@@ -128,9 +121,7 @@ public:
     float w_ = 0.;
 };
 
-/**
- *  This class definition represents a 3D transform in space with position and orientation.
- */
+/** @brief Rigid transform combining translation and quaternion orientation. */
 class Transform {
 public:
     Transform() = default;

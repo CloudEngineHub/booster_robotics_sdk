@@ -9,11 +9,13 @@ namespace booster {
 namespace robot {
 namespace x5_camera {
 
+/** @brief X5 camera control RPC identifiers. */
 enum class X5CameraApiId{
-    kChangeMode = 5001,
-    kGetStatus = 5002,
+    kChangeMode = 5001, ///< Change the X5 camera operating mode.
+    kGetStatus = 5002,  ///< Query the X5 camera controller status.
 };
 
+/** @brief JSON parameter selecting an X5 camera mode. */
 class ChangeModeParameter {
 public:
     ChangeModeParameter() = default;
@@ -22,10 +24,12 @@ public:
     }
 
 public:
+    /** @brief Loads the mode field from JSON. */
     void FromJson(nlohmann::json &json) {
         mode_ = static_cast<CameraSetMode>(json["mode"]);
     }
 
+    /** @brief Serializes the selected mode to JSON. */
     nlohmann::json ToJson() const {
         nlohmann::json json;
         json["mode"] = static_cast<int>(mode_);
@@ -36,6 +40,7 @@ public:
     CameraSetMode mode_;
 };
 
+/** @brief JSON response containing the current X5 camera status. */
 class GetStatusResponse {
 public:
     GetStatusResponse() = default;
@@ -44,10 +49,12 @@ public:
     }
 
 public:
+    /** @brief Loads the status field from JSON. */
     void FromJson(nlohmann::json &json) {
         status_ = static_cast<CameraControlStatus>(json["status"]);
     }
 
+    /** @brief Serializes the status to JSON. */
     nlohmann::json ToJson() const {
         nlohmann::json json;
         json["status"] = static_cast<int>(status_);

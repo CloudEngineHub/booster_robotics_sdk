@@ -9,18 +9,23 @@ namespace booster {
 namespace robot {
 namespace light {
 
+/** @brief Light-control RPC identifiers. The service is hardware-dependent. */
 enum class LightApiId {
-    kSetLEDLightColor = 2000,
-    kStopLEDLightControl = 2001,
-    kSetLEDLightColors = 2002
+    kSetLEDLightColor = 2000,   ///< Set all controlled LEDs to one color.
+    kStopLEDLightControl = 2001, ///< Stop the active LED control request.
+    kSetLEDLightColors = 2002   ///< Set an ordered color for each controlled LED.
 };
 
+/** @brief RGB color for one LED channel (each component is 0..255). */
 class SetLEDLightColorParameter {
 public:
+    /** @brief Constructs black. */
     SetLEDLightColorParameter() = default;
+    /** @brief Constructs a color from RGB components. */
     SetLEDLightColorParameter(uint8_t r, uint8_t g, uint8_t b) :
         r_(r), g_(g), b_(b) {
     }
+    /** @brief Constructs from a hexadecimal string such as `#RRGGBB`. */
     SetLEDLightColorParameter(const std::string &color) {
         bool success = false;
 
@@ -40,11 +45,13 @@ public:
         }
     }
 
+    /** @brief Loads `r`, `g` and `b` from JSON. */
     void FromJson(nlohmann::json &json) {
         r_ = json["r"];
         g_ = json["g"];
         b_ = json["b"];
     }
+    /** @brief Serializes this color to JSON. */
     nlohmann::json ToJson() const {
         nlohmann::json json;
         json["r"] = r_;
@@ -59,6 +66,7 @@ public:
     uint8_t b_ = 0;
 };
 
+/** @brief Ordered RGB colors for a multi-LED strip or array. */
 class SetLEDLightColorsParameter {
 public:
     SetLEDLightColorsParameter() = default;
@@ -66,6 +74,7 @@ public:
         colors_(colors) {
     }
 
+    /** @brief Loads the `colors` array from JSON. */
     void FromJson(nlohmann::json &json) {
         colors_.clear();
         for (const auto &color_json : json["colors"]) {
@@ -76,6 +85,7 @@ public:
         }
     }
 
+    /** @brief Serializes the color array to JSON. */
     nlohmann::json ToJson() const {
         nlohmann::json json;
         json["colors"] = nlohmann::json::array();

@@ -10,10 +10,15 @@
 namespace booster {
 namespace robot {
 
+/**
+ * @brief Converts one camera RPC JSON object to a Camera message.
+ * @note Supported model: K1 | T1 | T2
+ * @note Requires the camera service.
+ */
 void CameraFromRpcJson(booster_interface::msg::Camera &camera,
                       const nlohmann::json &j);
 
-/** Accepts a JSON array or `{ "cameras": [ ... ] }` (GetCameras RPC body). */
+/** @brief Converts a camera-list RPC body (array or `{ "cameras": [...] }`). */
 void CameraListFromRpcJson(booster_interface::msg::CameraList &list,
                            const nlohmann::json &json);
 

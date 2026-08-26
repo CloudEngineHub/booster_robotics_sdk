@@ -12,18 +12,27 @@
 namespace booster {
 namespace robot {
 
+/**
+ * @brief Base class for DDS-backed SDK RPC services.
+ * @note Supported model: K1 | T1 | T2
+ * @note Derived services define their own robot and hardware support.
+ */
 class RpcServer {
 public:
     RpcServer() = default;
     virtual ~RpcServer() = default;
 
+    /** @brief Starts request/response channels for @p channel_name. */
     void Init(const std::string &channel_name);
+    /** @brief Compatibility overload; reliability is selected by the implementation. */
     void Init(const std::string &channel_name, bool /*reliable*/) {
         Init(channel_name);
     }
+    /** @brief Stops serving requests and closes DDS channels. */
     void Stop();
 
 protected:
+    /** @brief Handles one decoded request and returns the response to publish. */
     virtual Response HandleRequest(const Request &req) = 0;
 
 private:

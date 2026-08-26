@@ -10,15 +10,23 @@ namespace booster {
 namespace robot {
 namespace x5_camera {
 
+/**
+ * @brief Client for the X5 camera mode/status service.
+ * @note Supported model: K1 | T2
+ * @note K1 support is limited to compatible X5/MIPI camera editions. T1
+ * profiles use the standard camera path; callers must handle an unavailable
+ * service.
+ */
 class X5CameraClient {
 public:
     X5CameraClient() = default;
     ~X5CameraClient() = default;
 
+    /** @brief Connects to the X5 camera control topic. */
     void Init();
 
     /**
-     * @brief Send API request to X5 Camera 
+     * @brief Sends a fire-and-forget X5 camera request.
      *
      * @param api_id API_ID, you can find the API_ID in x5_camera_const.hpp
      * @param param API parameter
@@ -28,7 +36,7 @@ public:
     int32_t SendApiRequest(X5CameraApiId api_id, const std::string &param);
 
     /**
-     * @brief Send API request to X5 Camera with response
+     * @brief Sends an X5 camera request and stores its response.
      *
      * @param api_id API_ID, you can find the API_ID in x5_camera_api_const.hpp
      * @param param API parameter
@@ -40,7 +48,7 @@ public:
     int32_t SendApiRequestWithResponse(X5CameraApiId api_id, const std::string &param, Response &resp);
 
     /**
-     * @brief Change Camera mode
+     * @brief Changes the X5 camera operating mode.
      *
      * @param mode Camera mode, options are:
      *   kCameraModeNormal,
@@ -57,7 +65,7 @@ public:
     }
 
     /**
-     * @brief get status
+     * @brief Gets the current X5 camera controller status.
      *
      * @param get_status_response [out] A reference to a Response object where the API's response will be stored.
      *    kCameraStatusNormal = 0,

@@ -10,13 +10,22 @@ namespace booster {
 namespace robot {
 namespace light {
 
+/**
+ * @brief RPC client for robot LED lighting.
+ * @note Supported model: K1 | T1 | T2
+ * @note Availability is hardware/service dependent; a particular build may
+ * not expose LED control.
+ */
 class LightControlClient {
 public:
+    /** @brief Constructs an uninitialized client. */
     LightControlClient() = default;
     ~LightControlClient() = default;
 
+    /** @brief Connects to the default robot light service. */
     void Init();
 
+    /** @brief Connects to a named robot's light service. */
     void Init(const std::string &robot_name);
     /**
      * @brief Send API request to B1 robot
@@ -26,6 +35,7 @@ public:
      *
      * @return 0 if success, otherwise return error code
      */
+    /** @brief Sends a fire-and-forget light RPC. @return 0 on success. */
     int32_t SendApiRequest(LightApiId api_id, const std::string &param);
 
     /**
@@ -38,6 +48,7 @@ public:
      *
      * @return 0 if success, otherwise return error code
      */
+    /** @brief Sends a light RPC and stores its response in @p resp. */
     int32_t SendApiRequestWithResponse(LightApiId api_id, const std::string &param, Response &resp);
 
     /**
@@ -45,12 +56,14 @@ public:
      *
      * @return 0 if success, otherwise return error code
      */
+    /** @brief Sets one LED color using RGB components. */
     int32_t SetLEDLightColor(uint8_t r, uint8_t g, uint8_t b) {
         SetLEDLightColorParameter set_color(r, g, b);
         std::string param = set_color.ToJson().dump();
         return SendApiRequest(LightApiId::kSetLEDLightColor, param);
     }
 
+    /** @brief Sets an ordered list of LED colors. */
     int32_t SetLEDLightColors(const std::vector<SetLEDLightColorParameter> &colors) {
         SetLEDLightColorsParameter set_colors(colors);
         std::string param = set_colors.ToJson().dump();
@@ -62,6 +75,7 @@ public:
      *
      * @return 0 if success, otherwise return error code
      */
+    /** @brief Stops the active LED-light control program. */
     int32_t StopLEDLightControl() {
         return SendApiRequest(LightApiId::kStopLEDLightControl, "");
     }

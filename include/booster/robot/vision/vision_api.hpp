@@ -8,29 +8,36 @@ namespace booster {
 namespace robot {
 namespace vision {
 
-// API ID 定义
+/** @brief Vision-detection RPC identifiers. */
 enum class VisionApiId {
-    kStartVisionService = 3000,
-    kStopVisionService = 3001,
-    kGetDetectionObject = 3002
+    kStartVisionService = 3000, ///< Start object or face detection.
+    kStopVisionService = 3001,  ///< Stop the active vision service.
+    kGetDetectionObject = 3002  ///< Retrieve the latest detected objects.
 };
 
-// --------------------------------------------------------
-// 1. 启动服务的参数类
-// --------------------------------------------------------
+/**
+ * @brief Options for starting object/face detection.
+ * @note Supported model: K1 | T1
+ * @note Vision detection is limited to supported K1 editions and is disabled
+ * on K1 Geek in the current platform configuration.
+ */
 class StartVisionServiceParameter {
 public:
+    /** @brief Constructs all optional outputs disabled. */
     StartVisionServiceParameter() = default;
+    /** @brief Constructs explicit position, color and face-output options. */
     StartVisionServiceParameter(bool pos, bool color, bool face) :
         enable_position_(pos), enable_color_(color), enable_face_detection_(face) {
     }
 
+    /** @brief Loads options from JSON. */
     void FromJson(const nlohmann::json &json) {
         if (json.contains("enable_position")) enable_position_ = json["enable_position"];
         if (json.contains("enable_color")) enable_color_ = json["enable_color"];
         if (json.contains("enable_face_detection")) enable_face_detection_ = json["enable_face_detection"];
     }
 
+    /** @brief Serializes options to JSON. */
     nlohmann::json ToJson() const {
         nlohmann::json json;
         json["enable_position"] = enable_position_;
@@ -45,6 +52,7 @@ public:
     bool enable_face_detection_ = false;
 };
 
+/** @brief Parameters controlling the central image focus region. */
 class GetDetectionObjectParameter {
 public:
     GetDetectionObjectParameter() = default;
@@ -52,10 +60,12 @@ public:
         focus_ratio_(ratio) {
     }
 
+    /** @brief Loads `focus_ratio` from JSON. */
     void FromJson(const nlohmann::json &json) {
         if (json.contains("focus_ratio")) focus_ratio_ = json["focus_ratio"];
     }
 
+    /** @brief Serializes this parameter to JSON. */
     nlohmann::json ToJson() const {
         nlohmann::json json;
         json["focus_ratio"] = focus_ratio_;
@@ -66,10 +76,12 @@ public:
     float focus_ratio_ = 0.33f;
 };
 
+/** @brief One vision detection with image bounds and optional 3D/color data. */
 class DetectResults {
 public:
     DetectResults() = default;
 
+    /** @brief Loads a detection result from JSON. */
     void FromJson(const nlohmann::json &json) {
         if (json.contains("xmin")) xmin_ = json["xmin"];
         if (json.contains("ymin")) ymin_ = json["ymin"];
@@ -82,7 +94,7 @@ public:
         if (json.contains("rgb_mean")) rgb_mean_ = json["rgb_mean"].get<std::vector<int32_t>>();
     }
 
-    // 序列化：C++ 对象转为 JSON
+    /** @brief Serializes this detection result to JSON. */
     nlohmann::json ToJson() const {
         nlohmann::json json;
         json["xmin"] = xmin_;

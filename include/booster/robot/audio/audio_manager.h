@@ -26,6 +26,16 @@ class AudioRecorder;
 class AudioLocalizer;
 class AudioCaptureStream;
 
+/**
+ * @brief Entry point for the audio service.
+ *
+ * The manager owns RPC/topic resources and creates player, recorder, localizer
+ * and capture-stream objects.
+ *
+ * @note Supported model: K1 | T1 | T2
+ * @note Availability of Bluetooth, NAEC, and device-specific backends depends
+ * on installed hardware and the running audio service.
+ */
 class AudioManager {
 public:
     using Json = nlohmann::json;
@@ -35,37 +45,63 @@ public:
     using BluetoothEventCallback =
         std::function<void(const booster_msgs::audio::BluetoothEventTopic &)>;
 
+    /** @brief Constructs an uninitialized manager. */
     AudioManager();
+    /** @brief Releases service resources and listeners. */
     ~AudioManager();
 
+    /** @brief Registers this client with the audio service. @return 0 on success. */
     int32_t Init();
+    /** @brief Stops callbacks and releases all RPC resources. */
     void Shutdown();
 
+    /** @brief Returns whether Init() completed successfully. */
     bool IsInitialized() const;
+    /** @brief Returns the service-unique client identifier. */
     std::string GetClientId() const;
+    /** @brief Generates a request identifier suitable for diagnostics. */
     std::string GenerateRequestId();
 
+    /** @brief Creates a player owned by this manager. */
     std::shared_ptr<AudioPlayer> CreatePlayer();
+    /** @brief Creates a recorder owned by this manager. */
     std::shared_ptr<AudioRecorder> CreateRecorder();
+    /** @brief Creates a direction-of-arrival localizer. */
     std::shared_ptr<AudioLocalizer> CreateLocalizer();
+    /** @brief Creates a raw/NAEC capture stream. */
     std::shared_ptr<AudioCaptureStream> CreateCaptureStream();
 
+    /** @brief Sets the system output volume in the range accepted by the service. */
     int32_t SetSystemVolume(float volume);
+    /** @brief Reads the system output volume. */
     int32_t GetSystemVolume(float *volume);
+    /** @brief Enables or disables system mute. */
     int32_t SetSystemMute(bool mute);
+    /** @brief Reads the system mute state. */
     int32_t GetSystemMute(bool *mute);
+    /** @brief Enumerates input or output devices. */
     int32_t GetDevices(AudioDeviceQueryType query_type, std::vector<AudioDeviceInfo> *devices);
 
+    /** @brief Starts Bluetooth discovery (hardware/service dependent). */
     int32_t StartBluetoothScan(const BluetoothScanOptions &options);
+    /** @brief Stops Bluetooth discovery. */
     int32_t StopBluetoothScan();
+    /** @brief Gets known Bluetooth devices, optionally including unpaired devices. */
     int32_t GetBluetoothDevices(bool include_unpaired, std::vector<BluetoothDeviceInfo> *devices);
+    /** @brief Pairs/connects a Bluetooth endpoint and optionally changes the default route. */
     int32_t ConnectBluetoothDevice(
         const BluetoothConnectOptions &options, BluetoothConnectResult *result);
+    /** @brief Disconnects a Bluetooth endpoint by address. */
     int32_t DisconnectBluetoothDevice(const std::string &address);
+    /** @brief Removes pairing/trust information for a Bluetooth endpoint. */
     int32_t ForgetBluetoothDevice(const std::string &address);
+    /** @brief Installs a callback for playback/recording progress events. */
     void SetProgressCallback(ProgressCallback callback);
+    /** @brief Installs a callback for audio events. */
     void SetEventCallback(EventCallback callback);
+    /** @brief Installs a callback for service errors. */
     void SetErrorCallback(ErrorCallback callback);
+    /** @brief Installs a callback for Bluetooth state events. */
     void SetBluetoothEventCallback(BluetoothEventCallback callback);
 
 private:

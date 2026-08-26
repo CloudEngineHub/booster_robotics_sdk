@@ -18,27 +18,41 @@
 namespace booster {
 namespace robot {
 
+/**
+ * @brief DDS-backed request/response client used by SDK services.
+ * @note Supported model: K1 | T1 | T2
+ * @note A concrete API is available only when its matching service is running
+ * on the selected robot.
+ */
 class RpcClient {
 public:
+    /** @brief Default time allowed for DDS endpoint discovery. */
     static constexpr int64_t kDefaultWaitForServiceTimeoutMs = 5000;
 
     RpcClient() = default;
     ~RpcClient() = default;
 
+    /** @brief Creates request and response channels for @p channel_name. */
     void Init(const std::string &channel_name);
+    /** @brief Compatibility overload; reliability is selected by the implementation. */
     void Init(const std::string &channel_name, bool /*reliable*/) {
         Init(channel_name);
     }
+    /** @brief Waits for the request endpoint and optionally the response endpoint. */
     bool WaitForService(
         int64_t timeout_ms = kDefaultWaitForServiceTimeoutMs,
         bool require_response_path = true);
+    /** @brief Sends @p req and waits up to @p timeout_ms for its response. */
     Response SendApiRequest(const Request &req, int64_t timeout_ms = 1000);
+    /** @brief Sends a request without creating or waiting for a response path. */
     int32_t SendApiRequestFireAndForget(
         const Request &req,
         int64_t endpoint_match_timeout_ms = 1000);
 
+    /** @brief Closes DDS channels and wakes outstanding waits. */
     void Stop();
 
+    /** @brief Generates a request UUID used to correlate a response. */
     std::string GenUuid();
 
 private:

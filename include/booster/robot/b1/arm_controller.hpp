@@ -25,19 +25,63 @@ namespace booster {
 namespace robot {
 namespace b1 {
 
+/**
+ * @file arm_controller.hpp
+ * @brief Blocking low-level arm trajectory helper.
+ * @note Supported model: K1 | T1
+ */
+
+/**
+ * @brief Four-degree-of-freedom arm aliases used by ArmController.
+ *
+ * The numeric values address the shared K1/T1 upper-body layout. They do not
+ * match T2, whose right arm starts at index 9 and whose arms contain wrist
+ * joints.
+ *
+ * @note Supported model: K1 | T1
+ */
 enum class ArmJoint {
-    kLeftPitch = 2,
-    kLeftRoll = 3,
-    kLeftYaw = 4,
-    kLeftElbow = 5,
-    kRightPitch = 6,
-    kRightRoll = 7,
-    kRightYaw = 8,
-    kRightElbow = 9,
+    kLeftPitch = 2,  ///< Left shoulder pitch, joint index 2.
+    kLeftRoll = 3,   ///< Left shoulder roll, joint index 3.
+    kLeftYaw = 4,    ///< Left arm joint index 4.
+    kLeftElbow = 5,  ///< Left arm joint index 5.
+    kRightPitch = 6, ///< Right shoulder pitch, joint index 6.
+    kRightRoll = 7,  ///< Right shoulder roll, joint index 7.
+    kRightYaw = 8,   ///< Right arm joint index 8.
+    kRightElbow = 9, ///< Right arm joint index 9.
 };
 
+/**
+ * @brief Queues and executes synchronized low-level arm position motions.
+ *
+ * Construction enables B1LocoClient::UpperBodyCustomControl() and subscribes
+ * to kTopicLowState. ControlArm() only queues targets; Finish() interpolates
+ * all queued joints together and publishes position commands at approximately
+ * 100 Hz. The server applies configured joint-position limits.
+ *
+ * @note Supported model: K1 | T1
+ * @note T2 uses the 7-DOF layout described by JointIndexWith7DofArm and is not
+ * compatible with this controller.
+ * @note This class is not thread-safe. Queue and execute motions from one
+ * application thread.
+ * @warning This is direct actuator control. Keep the robot supported, provide
+ * adequate clearance, and use conservative target angles and durations.
+ */
 class ArmController {
 public:
+    /**
+     * @brief Initializes transport, low-state tracking, and custom upper-body control.
+     *
+     * The constructor waits up to five seconds for low-state feedback, retries
+     * enabling custom control up to five times, and logs failures. A low-state
+     * timeout does not abort construction, so the application should not call
+     * Finish() until valid feedback is available.
+     *
+     * @param ip Network interface name or address accepted by ChannelFactory;
+     * an empty string selects the default interface.
+     * @note Exceptions raised by channel initialization are propagated after
+     * opened channels are closed.
+     */
     explicit ArmController(const std::string &ip = "") :
         low_cmd_publisher_(kTopicJointCtrl) {
         try {
@@ -67,21 +111,47 @@ public:
         }
     }
 
+    /** @brief Disables custom upper-body control and closes transport channels. */
     ~ArmController() {
         Close();
     }
 
+    /** @brief ArmController instances cannot be copied. */
     ArmController(const ArmController &) = delete;
+
+    /** @brief ArmController instances cannot be copy-assigned. */
     ArmController &operator=(const ArmController &) = delete;
+
+    /** @brief ArmController instances cannot be moved. */
     ArmController(ArmController &&) = delete;
+
+    /** @brief ArmController instances cannot be move-assigned. */
     ArmController &operator=(ArmController &&) = delete;
 
+    /**
+     * @brief Queues a target for one named arm joint.
+     * @param joint_idx K1/T1 arm joint to control.
+     * @param target_rad Target joint position in radians.
+     * @param duration_ms Motion duration in milliseconds. Values below 50 ms
+     * are raised to 50 ms.
+     * @return This controller, enabling chained ControlArm() calls.
+     * @note The command is not transmitted until Finish() is called.
+     */
     ArmController &ControlArm(ArmJoint joint_idx,
                               float target_rad,
                               float duration_ms) {
         return ControlArm(static_cast<int>(joint_idx), target_rad, duration_ms);
     }
 
+    /**
+     * @brief Queues a target using a raw K1/T1 joint index.
+     * @param joint_idx Joint index in the inclusive range 2 through 9.
+     * @param target_rad Target joint position in radians.
+     * @param duration_ms Motion duration in milliseconds. Values below 50 ms
+     * are raised to 50 ms.
+     * @return This controller, enabling chained ControlArm() calls.
+     * @note An index outside 2 through 9 is silently ignored.
+     */
     ArmController &ControlArm(int joint_idx,
                               float target_rad,
                               float duration_ms) {
@@ -97,6 +167,17 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Executes all queued arm targets as synchronized linear motions.
+     *
+     * Each joint uses its own requested duration. Shorter motions hold their
+     * final position while longer motions complete. Pending actions are cleared
+     * before the method returns.
+     *
+     * @return `true` when no targets were queued or every low-level publish
+     * succeeded; `false` if any publish failed.
+     * @warning This method is blocking for the longest queued duration.
+     */
     bool Finish() {
         if (pending_actions_.empty()) {
             return true;
@@ -167,6 +248,12 @@ public:
         return success;
     }
 
+    /**
+     * @brief Disables upper-body custom control and releases all channels.
+     *
+     * This method is idempotent. It discards queued targets. A failure to
+     * disable the robot action is logged and channel cleanup still proceeds.
+     */
     void Close() {
         if (is_closed_) {
             return;
